@@ -2,7 +2,7 @@
 
 Thanks a lot for your interest in contributing to Leon! :heart:
 
-**Leon needs open-source to live**, the more modules he has, the more skillful he becomes.
+**Leon needs open source to live**, the more modules he has, the more skillful he becomes.
 
 **Before submitting your contribution**, please take a moment to review this document.
 
@@ -45,19 +45,25 @@ To do so, you can run:
   
 ## Development Setup
 
-- Follow the [basic setup](https://github.com/leon-ai/leon/blob/develop/README.md#getting-started).
-- Then:
+```sh
+# Clone the repository
+git clone https://github.com/leon-ai/leon.git leon
 
-  ```sh
-  # run development server
-  npm run dev:server
-  
-  # run development web app
-  npm run dev:app
-  
-  # run the wake word node (optional)
-  npm run wake
-  ```
+# Go to the project root
+cd leon
+
+# Install
+npm install
+
+# Check the setup went well
+npm run check
+
+# Run the development server
+npm run dev:server
+
+# Run the development web app
+npm run dev:app
+```
 
 ## Versioning
 

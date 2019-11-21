@@ -55,8 +55,8 @@ describe('server', () => {
         Server.server.close()
       })
 
-      await Server.listen(process.env.LEON_SERVER_PORT)
-      server.listen(process.env.LEON_SERVER_PORT)
+      await Server.listen(process.env.LEON_PORT)
+      server.listen(process.env.LEON_PORT)
     })
   })
 
@@ -90,7 +90,7 @@ describe('server', () => {
 
       setTimeout(() => {
         ee.emit('query', { client: 'jest', value: 'Hello' })
-        expect(console.log.mock.calls[0][1]).toBe('NLU')
+        expect(['NLU', 'SOCKET']).toContain(console.log.mock.calls[0][1])
         console.log = jest.fn()
 
         ee.emit('recognize', { })

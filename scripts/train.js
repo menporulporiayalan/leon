@@ -1,4 +1,4 @@
-import { LogisticRegressionClassifier } from 'natural'
+import { NlpManager } from 'node-nlp'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
@@ -16,7 +16,7 @@ dotenv.config()
  * npm run train expressions
  * npm run train expressions:en
  */
-export default () => new Promise((resolve, reject) => {
+export default () => new Promise(async (resolve, reject) => {
   const { argv } = process
   const packagesDir = 'packages'
   const expressionsClassifier = 'server/src/data/expressions/classifier.json'
@@ -31,35 +31,44 @@ export default () => new Promise((resolve, reject) => {
 
   try {
     if (type === 'expressions') {
-      let classifier = new LogisticRegressionClassifier()
+      let manager = new NlpManager({ languages: ['en'] })
 
       if (lang !== 'en') {
-        // eslint-disable-next-line global-require, import/no-dynamic-require
-        const PorterStemmer = require(`../node_modules/natural/lib/natural/stemmers/porter_stemmer_${lang}`)
-        classifier = new LogisticRegressionClassifier(PorterStemmer)
+        manager = new NlpManager({ languages: lang })
       }
       const packages = fs.readdirSync(packagesDir)
         .filter(entity =>
           fs.statSync(path.join(packagesDir, entity)).isDirectory())
-      let expressions = { }
+      let expressionsObj = { }
 
       for (let i = 0; i < packages.length; i += 1) {
         log.info(`Training "${string.ucfirst(packages[i])}" package modules expressions...`)
 
-        expressions = JSON.parse(fs.readFileSync(`${packagesDir}/${packages[i]}/data/expressions/${lang}.json`, 'utf8'))
+        expressionsObj = JSON.parse(fs.readFileSync(`${packagesDir}/${packages[i]}/data/expressions/${lang}.json`, 'utf8'))
 
-        const modules = Object.keys(expressions)
+        const modules = Object.keys(expressionsObj)
         for (let j = 0; j < modules.length; j += 1) {
-          const exprs = expressions[modules[j]]
-          for (let k = 0; k < exprs.length; k += 1) {
-            classifier.addDocument(string.removeAccents(exprs[k]), `${packages[i]}:${modules[j]}`)
+          const module = modules[j]
+          const actions = Object.keys(expressionsObj[module])
+
+          for (let k = 0; k < actions.length; k += 1) {
+            const action = actions[k]
+            const exprs = expressionsObj[module][action].expressions
+
+            manager.assignDomain(lang, `${module}.${action}`, packages[i])
+
+            for (let l = 0; l < exprs.length; l += 1) {
+              manager.addDocument(lang, exprs[l], `${module}.${action}`)
+            }
           }
 
-          log.success(`"${string.ucfirst(modules[j])}" module expressions trained`)
+          log.success(`"${string.ucfirst(module)}" module expressions trained`)
         }
       }
 
-      classifier.save(expressionsClassifier, (err) => {
+      await manager.train()
+
+      fs.writeFile(expressionsClassifier, manager.export(true), (err) => {
         if (err) {
           log.error(`Failed to save the classifier: ${err}`)
           reject()

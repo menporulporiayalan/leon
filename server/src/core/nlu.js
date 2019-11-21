@@ -1,11 +1,13 @@
 'use strict'
 
-import { LogisticRegressionClassifier } from 'natural'
+import { NlpManager } from 'node-nlp'
 import request from 'superagent'
 import fs from 'fs'
+import path from 'path'
 
 import { langs } from '@@/core/langs.json'
 import { version } from '@@/package.json'
+import Ner from '@/core/ner'
 import log from '@/helpers/log'
 import string from '@/helpers/string'
 
@@ -14,6 +16,7 @@ class Nlu {
     this.brain = brain
     this.request = request
     this.classifier = { }
+    this.ner = new Ner()
 
     log.title('NLU')
     log.success('New instance')
@@ -28,34 +31,37 @@ class Nlu {
         log.title('NLU')
         reject({ type: 'warning', obj: new Error('The expressions classifier does not exist, please run: npm run train expressions') })
       } else {
-        LogisticRegressionClassifier.load(classifierFile, null, (err, classifier) => {
-          log.title('NLU')
+        log.title('NLU')
 
-          /* istanbul ignore if */
-          if (err) {
-            this.brain.talk(`${this.brain.wernicke('random_errors')}! ${this.brain.wernicke('errors', 'nlu', { '%error%': err.message })}.`)
-            this.brain.socket.emit('is-typing', false)
-            reject({ type: 'error', obj: err })
-          } else {
-            this.classifier = classifier
-            this.classifier.train()
-            log.success('Classifier loaded')
-            resolve()
-          }
-        })
+        try {
+          const data = fs.readFileSync(classifierFile, 'utf8')
+          const nlpManager = new NlpManager()
+
+          nlpManager.import(data)
+          this.classifier = nlpManager
+
+          log.success('Classifier loaded')
+          resolve()
+        } catch (err) {
+          this.brain.talk(`${this.brain.wernicke('random_errors')}! ${this.brain.wernicke('errors', 'nlu', { '%error%': err.message })}.`)
+          this.brain.socket.emit('is-typing', false)
+
+          reject({ type: 'error', obj: err })
+        }
       }
     })
   }
 
   /**
-   * Classify the query
-   * and pick-up the right classification
+   * Classify the query,
+   * pick-up the right classification
+   * and extract entities
    */
   async process (query) {
     log.title('NLU')
     log.info('Processing...')
 
-    query = string.removeAccents(string.ucfirst(query))
+    query = string.ucfirst(query)
 
     if (Object.keys(this.classifier).length === 0) {
       this.brain.talk(`${this.brain.wernicke('random_errors')}!`)
@@ -66,16 +72,18 @@ class Nlu {
       return false
     }
 
-    const result = this.classifier.classify(query)
-    const packageName = result.substr(0, result.indexOf(':'))
-    const moduleName = result.substr(result.indexOf(':') + 1)
-    const classifications = this.classifier.getClassifications(query)
+    const lang = langs[process.env.LEON_LANG].short
+    const result = await this.classifier.process(lang, query)
+    const { domain, intent, score, entities } = result
+    const [moduleName, actionName] = intent.split('.')
     let obj = {
       query,
+      entities,
       classification: {
-        package: packageName,
+        package: domain,
         module: moduleName,
-        confidence: classifications[0].value
+        action: actionName,
+        confidence: score
       }
     }
 
@@ -87,18 +95,18 @@ class Nlu {
         .send({
           version,
           query,
-          lang: langs[process.env.LEON_LANG].short,
+          lang,
           classification: obj.classification
         })
         .then(() => { /* */ })
         .catch(() => { /* */ })
     }
 
-    if (obj.classification.confidence <= 0.5) {
+    if (intent === 'None') {
       const fallback = Nlu.fallback(obj, langs[process.env.LEON_LANG].fallbacks)
 
       if (fallback === false) {
-        this.brain.talk(`${this.brain.wernicke('random_unknown_queries')}.`)
+        this.brain.talk(`${this.brain.wernicke('random_unknown_queries')}.`, true)
         this.brain.socket.emit('is-typing', false)
 
         log.title('NLU')
@@ -114,10 +122,22 @@ class Nlu {
     log.success('Query found')
 
     try {
+      obj.entities = await this.ner.extractActionEntities(
+        lang,
+        path.join(__dirname, '../../../packages', obj.classification.package, `data/expressions/${lang}.json`),
+        obj
+      )
+    } catch (e) /* istanbul ignore next */ {
+      log[e.type](e.obj.message)
+      this.brain.talk(`${this.brain.wernicke(e.code, '', e.data)}!`)
+    }
+
+    try {
+      // Inject action entities with the others if there is
       await this.brain.execute(obj)
-    } catch (e) {
-      /* istanbul ignore next */
-      log[e.type](e.obj.message || e.obj)
+    } catch (e) /* istanbul ignore next */ {
+      log[e.type](e.obj.message)
+      this.brain.socket.emit('is-typing', false)
     }
 
     return true
@@ -142,8 +162,10 @@ class Nlu {
         }
 
         if (JSON.stringify(tmpWords) === JSON.stringify(fallbacks[i].words)) {
+          obj.entities = []
           obj.classification.package = fallbacks[i].package
           obj.classification.module = fallbacks[i].module
+          obj.classification.action = fallbacks[i].action
           obj.classification.confidence = 1
 
           log.success('Fallback found')

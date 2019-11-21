@@ -15,7 +15,7 @@ export default () => new Promise(async (resolve, reject) => {
   try {
     const nodeMinRequiredVersion = '10'
     const npmMinRequiredVersion = '5'
-    const pythonRequiredVersion = '3.6'
+    const pythonMinRequiredVersion = '3'
     const flitePath = 'bin/flite/flite'
     const deepSpeechPath = 'bin/deepspeech/lm.binary'
     const amazonPath = 'server/src/config/voice/amazon.json'
@@ -67,9 +67,9 @@ export default () => new Promise(async (resolve, reject) => {
       log.info(p.cmd)
 
       if (p.cmd.indexOf('pipenv run python --version') !== -1 &&
-        !semver.satisfies(p.stdout.split(' ')[1], pythonRequiredVersion)) {
+        !semver.satisfies(p.stdout.split(' ')[1], `>=${pythonMinRequiredVersion}`)) {
         Object.keys(report).forEach((item) => { if (report[item].type === 'error') report[item].v = false })
-        log.error(`${p.stdout}\nThe Python version must be ${pythonRequiredVersion}.x. Please install it: https://www.python.org/downloads\n`)
+        log.error(`${p.stdout}\nThe Python version must be >=${pythonMinRequiredVersion}. Please install it: https://www.python.org/downloads\n`)
       } else {
         log.success(`${p.stdout}\n`)
       }
@@ -78,7 +78,7 @@ export default () => new Promise(async (resolve, reject) => {
     // Module execution checking
 
     try {
-      const p = await shell('pipenv run python bridges/python/main.py en leon randomnumber "Give me a random number"')
+      const p = await shell('pipenv run python bridges/python/main.py scripts/assets/query-object.json')
       log.info(p.cmd)
       log.success(`${p.stdout}\n`)
     } catch (e) {

@@ -67,9 +67,11 @@ describe('brain', () => {
 
       const obj = {
         query: 'Hello',
+        entities: [],
         classification: {
           package: 'leon',
           module: 'greeting',
+          action: 'run',
           confidence: 0.9
         }
       }
@@ -85,9 +87,18 @@ describe('brain', () => {
 
       const obj = {
         query: 'Is github.com up?',
+        entities: [{
+          sourceText: 'github.com',
+          utteranceText: 'github.com',
+          entity: 'url',
+          resolution: {
+            value: 'github.com'
+          }
+        }],
         classification: {
           package: 'checker',
           module: 'isitdown',
+          action: 'run',
           confidence: 0.9
         }
       }
@@ -103,9 +114,11 @@ describe('brain', () => {
 
       const obj = {
         query: 'Hello',
+        entities: [],
         classification: {
           package: 'leon',
           module: 'greeting',
+          action: 'run',
           confidence: 0.9
         }
       }

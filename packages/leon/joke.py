@@ -3,7 +3,7 @@
 
 import utils
 
-def joke(string):
+def run(string, entities):
 	"""Leon says some jokes"""
 
 	return utils.output('end', 'jokes', utils.translate('jokes'))

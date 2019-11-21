@@ -80,7 +80,7 @@ class Server {
       app.use(`/${apiVersion}/downloads`, downloadRouter)
 
       try {
-        await this.listen(process.env.LEON_SERVER_PORT)
+        await this.listen(process.env.LEON_PORT)
         resolve()
       } catch (e) {
         log[e.type](e.obj.message)
@@ -100,7 +100,7 @@ class Server {
           return
         }
 
-        log.success(`Server is listening on ${port}`)
+        log.success(`Server is available at ${process.env.LEON_HOST}:${port}`)
 
         const io = socketio.listen(this.server)
         io.on('connection', this.connection)
@@ -160,12 +160,12 @@ class Server {
           }
 
           // Listen for new query
-          socket.on('query', (data) => {
+          socket.on('query', async (data) => {
             log.title('Socket')
             log.info(`${data.client} emitted: ${data.value}`)
 
             socket.emit('is-typing', true)
-            nlu.process(data.value)
+            await nlu.process(data.value)
           })
 
           // Handle automatic speech recognition

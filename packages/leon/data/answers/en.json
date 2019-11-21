@@ -1,9 +1,9 @@
 {
 	"whoami": {
 		"introduction": [
-			"I'm your daily personal assistant. I have been created by Louis. I'm very happy to serve you everyday.",
-			"The question is, who are you? I'm kidding! I'm your daily personal assistant. Louis created me to make your life easier.",
-      "Firstly, I'm not a criminal as you might relatively think about a popular movie. Secondly, Louis is the guy who gave me life. Thirdly, I'm your personal assistant and I'm very glad to help you."
+			"I'm your daily personal assistant. I have been created by Eby. I'm very happy to serve you everyday.",
+			"The question is, who are you? I'm kidding! I'm your daily personal assistant. Eby created me to make your life easier.",
+      "Firstly, I'm not a criminal as you might relatively think about a popular movie. Secondly, Eby is the guy who gave me life. Thirdly, I'm your personal assistant and I'm very glad to help you."
 		]
 	},
 	"joke": {
@@ -27,7 +27,7 @@
       "Hello there!",
       "Hey you!",
 			"Hey! I hope you're doing well!",
-			"Hi! what's up?!"
+			"Hi! What's up?!"
 		],
 		"morning_good_day": [
 			"Good morning, have a very nice day!",
@@ -93,7 +93,7 @@
     ],
     "cortana": [
       "Cortana is thoughtful and Microsoft is improving her day after day. She was born in April 2014.",
-      "Cortana has been created by Microsoft and was born in April 2014. We went for a walk few weeks ago, it was a very nice hiking."
+      "Cortana has been created by Microsoft and was born in April 2014. We went for a walk few weeks ago, it was a very nice hike."
     ],
     "siri": [
       "I consider Siri as a leader, it has a lot of experience and Apple is constantly improving it. It was born in October 2011.",
@@ -107,5 +107,10 @@
       "I don't know this personal assistant.",
       "I never met this personal assistant."
     ]
+  },
+  "ebypersonal": {
+  	"friends": [
+  	 "Eby's Best Friends are Gopi, Play boy Abishek,Ignesh,Alwar,Jim and Suresh"
+  	]
   }
 }
