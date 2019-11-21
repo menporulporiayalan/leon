@@ -1,4 +1,4 @@
 {
-  "url": "",
-  "iam_apikey": ""
+  "url": "https://gateway-lon.watsonplatform.net/speech-to-text/api",
+  "iam_apikey": "rSbaLz98SmZQ0qPBnEwsavqm55id6AfFre1EElZ5CaE1"
 }

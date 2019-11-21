@@ -89,5 +89,12 @@
         "Do you have something to say about Google Assistant?"
       ]
     }
+  },
+  "ebypersonal":{
+    "run": {
+      "expressions": [
+        "Who are all eby's best friends?"
+      ]
+    }
   }
 }
